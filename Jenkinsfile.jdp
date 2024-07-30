@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+    
+    tools{
+        maven 'maven3'
+        jdk 'jdk17'
+    }
+    environment{
+        SCANNER_HOME=tool'sonar-scanner'
+    }
+
+    stages {
+        stage('Git Checkout') {
+            steps {
+               git branch: 'main', url: 'https://github.com/R5t-web/Boardgame.git'
+            }
+        }
+         stage('Compile') {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+         stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        stage('Hello') {
+            steps {
+                withSonarQubeEnv('sonar-server') {
+                    sh'$SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Board -Dsonar.projectKey=BoardKey -Dsonar.java.binaries=target'
+    
+               }
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+    }
+}
